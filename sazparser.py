@@ -48,7 +48,7 @@ class SazFile:
                 if x.startswith('raw') and x.endswith('_s.txt')
             ]
         return self._sfilelist
-    
+
     @property
     def html(self):
         fname = '_index.htm'
@@ -109,7 +109,7 @@ class Session:
         self._crequest = None
         self._srequest = None
         self._metadata = None
-    
+
     @property
     def client_request(self):
         if self._crequest is None:
@@ -183,21 +183,30 @@ class Session:
 
         return ret
 
+
 class InfoBase:
     def __init__(self, rawdata):
         self._rawdata = rawdata
 
+
 class Request(InfoBase):
     def __init__(self, rawdata):
         super(Request, self).__init__(rawdata)
+        self._message = ''
         self._headers = {}
         self._body = None
-    
+
+    @property
+    def message(self):
+        if not self._message:
+            self._message = self._rawdata.split(b'\r\n')[0]
+        return self._message
+
     @property
     def headers(self):
         if not self._headers:
             self._headers = {
-                h.split(b':')[0].strip(): h.split(b':')[1].strip()
+                h.split(b':')[0].strip(): h.split(b':', 1)[1].strip()
                 for h in self._rawdata.split(b'\r\n\r\n')[0].split(b'\r\n')[1:]
             }
         return self._headers
@@ -205,14 +214,21 @@ class Request(InfoBase):
     @property
     def body(self):
         if self._body is None:
-            self._body = b''.join(self._rawdata.split(b'\r\n\r\n')[1:])
+            self._body = self._rawdata.split(b'\r\n\r\n', 1)[1]
         return self._body
-        
+
 
 class ClientRequest(Request):
-    pass
+    @property
+    def method(self):
+        return self.message.split(b' ')[0]
+
 
 class ServerRequest(Request):
+    @property
+    def status(self):
+        return self.message.split(b' ')[1]
+
     @property
     def content_type(self):
         ret = None
@@ -222,11 +238,12 @@ class ServerRequest(Request):
             pass
         return ret
 
+
 class MetaData(InfoBase):
     def __init__(self, rawdata):
         super(MetaData, self).__init__(rawdata)
         self._timing = {}
-    
+
     @property
     def timing(self):
         if not self._timing:
@@ -237,6 +254,7 @@ class MetaData(InfoBase):
                 self._timing[key] = item.attributes[key].value
 
         return self._timing
+
 
 def main():
     import argparse
@@ -279,6 +297,7 @@ def main():
             gateway_time, dgateway_time,
         )
     )
-    
+
+
 if __name__ == '__main__':
     main()
