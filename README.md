@@ -1,7 +1,7 @@
 # sazparser
 A simple parser for Session Archive Zip (SAZ) files
 
-Written based on https://web.archive.org/web/20190109000426/http://fiddler.wikidot.com/saz-files 
+Written based on https://web.archive.org/web/20180730023102/http://fiddler.wikidot.com:80/saz-files
 
 The purpose is to analysis the result of fiddler (http://www.telerik.com/fiddler) with script.
 
